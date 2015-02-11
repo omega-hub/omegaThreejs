@@ -6,15 +6,13 @@
 <body>
     <canvas id="canvas" width="1920px" height="1080px"></canvas>
     
-    <script src="asset://local/webView/js/omega.js"></script>
     <script src="asset://local/omegaThreejs/three.js"></script>
     <script src="asset://local/omegaThreejs/omegaThree.js"></script>
-    
     <script src="asset://local/omegaThreejs/examples/FresnelShader.js"></script>
 
     <script>
         start();
-    
+        
         function start() {
             scene = new THREE.Scene();
             omegaThree.init("canvas")
@@ -34,6 +32,7 @@
             floor.position.y = -5.5;
             floor.rotation.x = Math.PI / 2;
             scene.add(floor);
+            
             // SKYBOX
             var imagePrefix = "asset://local/omegaThreejs/examples/images/dawnmountain-";
             var directions  = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
@@ -84,14 +83,14 @@
             sphere.position.set(0, 5, 10);
             scene.add(sphere);
             
-            refractSphereCamera.position = sphere.position;            
+            refractSphereCamera.position = sphere.position;       
         }
 
         function frame(context) {
             sphere.visible = false;
             refractSphereCamera.updateCubeMap( omegaThree.renderer, scene );
             sphere.visible = true;
-    
+            
             omegaThree.frame(context)
         }
 
