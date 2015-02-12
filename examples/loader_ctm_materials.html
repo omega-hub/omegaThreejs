@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel=stylesheet href="asset://local/omegaThreejs/css/base.css"/>
+</head>
+<body>
+    <canvas id="canvas" width="1920px" height="1080px"></canvas>
+    
+    <script src="asset://local/omegaThreejs/three.js"></script>
+    <script src="asset://local/omegaThreejs/omegaThree.js"></script>
+
+    <script src="http://threejs.org/examples/js/loaders/ctm/lzma.js"></script>
+    <script src="http://threejs.org/examples/js/loaders/ctm/ctm.js"></script>
+    <script src="http://threejs.org/examples/js/loaders/ctm/CTMLoader.js"></script>
+    
+    <script>
+        start();
+        
+        function start() {
+            scene = new THREE.Scene();
+            omegaThree.init("canvas")
+            omegaThree.scene = scene
+
+            // SKYBOX
+            var r = "stpeter/";
+            var urls = [ r + "posx.jpg", r + "negx.jpg",
+                         r + "posy.jpg", r + "negy.jpg",
+                         r + "posz.jpg", r + "negz.jpg" ];
+
+
+            textureCube = THREE.ImageUtils.loadTextureCube( urls );
+
+            var shader = THREE.ShaderLib[ "cube" ];
+            shader.uniforms[ "tCube" ].value = textureCube;
+
+            var material = new THREE.ShaderMaterial( {
+
+                fragmentShader: shader.fragmentShader,
+                vertexShader: shader.vertexShader,
+                uniforms: shader.uniforms,
+                depthWrite: false,
+                side: THREE.BackSide
+
+            } ),
+
+            mesh = new THREE.Mesh( new THREE.BoxGeometry( 500, 500, 500 ), material );
+            scene.add(mesh)
+
+            // LIGHTS
+
+            var light = new THREE.PointLight( 0xffffff, 1 );
+            light.position.set( 2, 5, 1 );
+            light.position.multiplyScalar( 30 );
+            scene.add( light );
+
+            var light = new THREE.PointLight( 0xffffff, 0.75 );
+            light.position.set( -12, 4.6, 2.4 );
+            light.position.multiplyScalar( 30 );
+            scene.add( light );
+
+            scene.add( new THREE.AmbientLight( 0x050505 ) );
+            
+            // LOADER
+
+            var start = Date.now();
+
+            // new way via CTMLoader and separate parts
+
+            loaderCTM = new THREE.CTMLoader( true );
+            document.body.appendChild( loaderCTM.statusDomElement );
+
+            var position = new THREE.Vector3( 0, -2, 3 );
+            var scale = new THREE.Vector3( 1, 1, 1 );
+
+            loaderCTM.loadParts( "http://threejs.org/examples/models/ctm/camaro/camaro.js", function( geometries, materials ) {
+
+                hackMaterials( materials );
+
+                for ( var i = 0; i < geometries.length; i ++ ) {
+
+                    var mesh = new THREE.Mesh( geometries[ i ], materials[ i ] );
+                    mesh.position.copy( position );
+                    mesh.scale.copy( scale );
+                    scene.add( mesh );
+
+                }
+
+                loaderCTM.statusDomElement.style.display = "none";
+
+                var end = Date.now();
+
+                console.log( "load time:", end - start, "ms" );
+
+            }, { useWorker: true } );            
+        }
+    
+        function hackMaterials( materials ) {
+
+            for ( var i = 0; i < materials.length; i ++ ) {
+
+                var m = materials[ i ];
+
+                if ( m.name.indexOf( "Body" ) !== -1 ) {
+
+                    var mm = new THREE.MeshPhongMaterial( { map: m.map } );
+
+                    mm.envMap = textureCube;
+                    mm.combine = THREE.MixOperation;
+                    mm.reflectivity = 0.75;
+
+                    materials[ i ] = mm;
+
+                } else if ( m.name.indexOf( "mirror" ) !== -1 ) {
+
+                    var mm = new THREE.MeshPhongMaterial( { map: m.map } );
+
+                    mm.envMap = textureCube;
+                    mm.combine = THREE.MultiplyOperation;
+
+                    materials[ i ] = mm;
+
+                } else if ( m.name.indexOf( "glass" ) !== -1 ) {
+
+                    var mm = new THREE.MeshPhongMaterial( { map: m.map } );
+
+                    mm.envMap = textureCube;
+                    mm.color.copy( m.color );
+                    mm.combine = THREE.MixOperation;
+                    mm.reflectivity = 0.25;
+                    mm.opacity = m.opacity;
+                    mm.transparent = true;
+
+                    materials[ i ] = mm;
+
+                } else if ( m.name.indexOf( "Material.001" ) !== -1 ) {
+
+                    var mm = new THREE.MeshPhongMaterial( { map: m.map } );
+
+                    mm.shininess = 30;
+                    mm.color.setHex( 0x404040 );
+                    mm.metal = true;
+
+                    materials[ i ] = mm;
+
+                }
+
+                materials[ i ].side = THREE.DoubleSide;
+
+            }
+
+        }
+            
+        function frame(context) {
+            omegaThree.frame(context);
+        }
+
+    </script>
+</body>
+</html>

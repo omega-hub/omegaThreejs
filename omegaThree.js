@@ -36,6 +36,7 @@ omegaThree.frame = function(omega) {
             my.w = window.innerWidth;
             my.h = window.innerHeight;
             my.renderer.setSize( my.w,my.h );
+            my.irenderer.setSize( my.w,my.h );
         }
 
         omegaThree.irenderer.context = omega;
@@ -63,8 +64,8 @@ omegaThree.InterleavedRenderer = function ( renderer ) {
 
 	var _params = { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat };
 
-	my.renderTargetL = new THREE.WebGLRenderTarget( 512, 512, _params );
-	my.renderTargetR = new THREE.WebGLRenderTarget( 512, 512, _params );
+	my.renderTargetL = new THREE.WebGLRenderTarget( 256, 128, _params );
+	my.renderTargetR = new THREE.WebGLRenderTarget( 256, 128, _params );
 
 	my.material = new THREE.ShaderMaterial( {
 
@@ -100,11 +101,11 @@ omegaThree.InterleavedRenderer = function ( renderer ) {
 
 			"	if ( ( mod( gl_FragCoord.y, 2.0 ) ) > 1.00 ) {",
 
-			"		gl_FragColor = texture2D( mapLeft, uv );",
+			"		gl_FragColor = texture2D( mapRight, uv );",
 
 			"	} else {",
 
-			"		gl_FragColor = texture2D( mapRight, uv );",
+			"		gl_FragColor = texture2D( mapLeft, uv );",
 
 			"	}",
 
@@ -119,8 +120,8 @@ omegaThree.InterleavedRenderer = function ( renderer ) {
 
 	this.setSize = function ( width, height ) {
 
-		my.renderTargetL = new THREE.WebGLRenderTarget( width, height, _params );
-		my.renderTargetR = new THREE.WebGLRenderTarget( width, height, _params );
+		my.renderTargetL = new THREE.WebGLRenderTarget( width, height / 2, _params );
+		my.renderTargetR = new THREE.WebGLRenderTarget( width, height / 2, _params );
 
 		my.material.uniforms[ "mapLeft" ].value = my.renderTargetL;
 		my.material.uniforms[ "mapRight" ].value = my.renderTargetR;

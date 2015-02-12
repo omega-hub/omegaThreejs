@@ -8141,7 +8141,8 @@ THREE.Face3 = function ( a, b, c, normal, color, materialIndex ) {
 	this.vertexTangents = [];
 
 	this.materialIndex = materialIndex !== undefined ? materialIndex : 0;
-
+    
+    this.centroid = new THREE.Vector3();
 };
 
 THREE.Face3.prototype = {
@@ -9541,6 +9542,24 @@ THREE.Geometry.prototype = {
 
 	},
 
+    	computeCentroids: function () {
+
+		var f, fl, face;
+
+		for ( f = 0, fl = this.faces.length; f < fl; f ++ ) {
+
+			face = this.faces[ f ];
+			face.centroid.set( 0, 0, 0 );
+
+			face.centroid.add( this.vertices[ face.a ] );
+			face.centroid.add( this.vertices[ face.b ] );
+			face.centroid.add( this.vertices[ face.c ] );
+			face.centroid.divideScalar( 3 );
+
+		}
+
+	},
+    
 	computeFaceNormals: function () {
 
 		var cb = new THREE.Vector3(), ab = new THREE.Vector3();

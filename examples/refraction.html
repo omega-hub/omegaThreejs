@@ -64,9 +64,9 @@
             var fresnelUniforms = 
             {
                 "mRefractionRatio": { type: "f", value: 1.02 },
-                "mFresnelBias": 	{ type: "f", value: 0.1 },
+                "mFresnelBias": 	{ type: "f", value: 0.2 },
                 "mFresnelPower": 	{ type: "f", value: 2.0 },
-                "mFresnelScale": 	{ type: "f", value: 1.0 },
+                "mFresnelScale": 	{ type: "f", value: 6.0 },
                 "tCube": 			{ type: "t", value: refractSphereCamera.renderTarget } //  textureCube }
             };
             
@@ -78,9 +78,9 @@
                 fragmentShader: fShader.fragmentShader
             }   );
             
-            var sphereGeometry = new THREE.SphereGeometry( 10, 64, 32 );
+            var sphereGeometry = new THREE.SphereGeometry( 0.5, 32, 32 );
             this.sphere = new THREE.Mesh( sphereGeometry, customMaterial );
-            sphere.position.set(0, 5, 10);
+            sphere.position.set(0, 1.6, -3);
             scene.add(sphere);
             
             refractSphereCamera.position = sphere.position;       
