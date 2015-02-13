@@ -7,7 +7,7 @@ omegaThree.h = 0;
 ////////////////////////////////////////////////////////////////////////////////
 // display mode
 omegaThree.DisplayMono = 0;
-omegaThree.DisplayInterleaved = 1;
+omegaThree.DisplayLineInterleaved = 1;
 
 ////////////////////////////////////////////////////////////////////////////////
 omegaThree.init = function(canvas) {
@@ -38,9 +38,15 @@ omegaThree.frame = function(omega) {
             my.renderer.setSize( my.w,my.h );
             my.irenderer.setSize( my.w,my.h );
         }
-
-        omegaThree.irenderer.context = omega;
-        omegaThree.irenderer.render(omegaThree.scene, omegaThree.camera);
+        if(omega.stereoMode == omegaThree.DisplayMono)
+        {
+            omegaThree.renderer.render(omegaThree.scene, omegaThree.camera);
+        }
+        else if(omega.stereoMode == omegaThree.DisplayLineInterleaved)
+        {
+            omegaThree.irenderer.context = omega;
+            omegaThree.irenderer.render(omegaThree.scene, omegaThree.camera);
+        }
     }
 }
 
