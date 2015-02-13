@@ -3,6 +3,8 @@ var omegaThree	= omegaThree || {};
 
 omegaThree.w = 0;
 omegaThree.h = 0;
+omegaThree.x = 0;
+omegaThree.y = 0;
 
 ////////////////////////////////////////////////////////////////////////////////
 // display mode
@@ -31,12 +33,15 @@ omegaThree.frame = function(omega) {
     my.camera.matrixWorld.fromArray(omega.modelview);
     
     if(omegaThree.scene) {
-        if(window.innerWidth != my.w || window.innerHeight != my.h) {
-            console.log("resize " + window.innerWidth + " " + window.innerHeight)
+        if(window.innerWidth != my.w || window.innerHeight != my.h ||
+            my.x != omega.activeRect[0] || my.y != omega.activeRect[1]) {
+            console.log("resize " + window.innerWidth + " " + window.innerHeight + " " + omega.activeRect[0] + " " + omega.activeRect[1])
             my.w = window.innerWidth;
             my.h = window.innerHeight;
+            my.x = omega.activeRect[0];
+            my.y = omega.activeRect[1];
             my.renderer.setSize( my.w,my.h );
-            my.irenderer.setSize( my.w,my.h );
+            my.irenderer.setSize( my.w,my.h , omega.activeRect);
         }
         if(omega.stereoMode == omegaThree.DisplayMono)
         {
@@ -112,6 +117,7 @@ omegaThree.InterleavedRenderer = function ( renderer ) {
 			"	} else {",
 
 			"		gl_FragColor = texture2D( mapLeft, uv );",
+            
 
 			"	}",
 
@@ -124,15 +130,21 @@ omegaThree.InterleavedRenderer = function ( renderer ) {
 	my.mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 2, 2 ), my.material );
 	_scene.add( my.mesh );
 
-	this.setSize = function ( width, height ) {
+	this.setSize = function ( width, height, vp ) {
 
 		my.renderTargetL = new THREE.WebGLRenderTarget( width, height / 2, _params );
 		my.renderTargetR = new THREE.WebGLRenderTarget( width, height / 2, _params );
 
-		my.material.uniforms[ "mapLeft" ].value = my.renderTargetL;
-		my.material.uniforms[ "mapRight" ].value = my.renderTargetR;
-
-		renderer.setSize( width, height );
+        if(vp[1] % 2 == height % 2) {
+            console.log("NORMAL " + vp[1] + " " + height)
+            my.material.uniforms[ "mapLeft" ].value = my.renderTargetL;
+            my.material.uniforms[ "mapRight" ].value = my.renderTargetR;
+        }
+        else {
+            console.log("INVERT " + vp[1] + " " + height)
+            my.material.uniforms[ "mapLeft" ].value = my.renderTargetR;
+            my.material.uniforms[ "mapRight" ].value = my.renderTargetL;
+        }
 	};
 
 	this.render = function ( scene, camera ) {
