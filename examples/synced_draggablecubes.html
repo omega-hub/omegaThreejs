@@ -16,17 +16,10 @@
 	<body>
         <canvas id="canvas" width="1920px" height="1080px"></canvas>
 
-		<script src="../three.min.js"></script>
-        <script src="../omegaThree.js"></script>
+		<script src="omegaThreejs/three.min.js"></script>
+        <script src="omegaThreejs/omegaThree.js"></script>
+		<script src="porthole/res/porthole.js"></script>
 		<script>
-            var _seed = 1;
-            function random() {
-                var x = Math.sin(_seed++) * 11111;
-                x = x - Math.floor(x);
-                //console.log(x)
-                return x;
-            }
-
 			var container, stats;
 			var camera, scene, renderer;
 			var objects = [], plane;
@@ -59,35 +52,6 @@
 
 				scene.add( light );
 
-				var geometry = new THREE.BoxGeometry( 0.1, 0.1, 0.1 );
-
-				for ( var i = 0; i < 200; i ++ ) {
-
-					var object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
-
-					object.material.ambient = object.material.color;
-
-					object.position.x = random() * 2 - 1;
-					object.position.y = random() * 1 - 0.5 + 2;
-					object.position.z = random() * 1 - 0.5 - 3;
-
-					object.rotation.x = random() * 2 * Math.PI;
-					object.rotation.y = random() * 2 * Math.PI;
-					object.rotation.z = random() * 2 * Math.PI;
-
-					object.scale.x = random() * 0.5 + 1;
-					object.scale.y = random() * 0.5 + 1;
-					object.scale.z = random() * 0.5 + 1;
-
-					object.castShadow = true;
-					object.receiveShadow = true;
-
-					scene.add( object );
-
-					objects.push( object );
-
-				}
-
 				plane = new THREE.Mesh(
 					new THREE.PlaneBufferGeometry( 20, 20, 8, 8 ),
 					new THREE.MeshBasicMaterial( { color: 0x000000, opacity: 0.25, transparent: true } )
@@ -96,7 +60,7 @@
 				scene.add( plane );
 
 				renderer = new THREE.WebGLRenderer( { 
-                    /*antialias: true,*/
+                    antialias: true,
                     canvas: document.getElementById('canvas')} );
                     
 				renderer.setClearColor( 0xf0f0f0 );
@@ -111,19 +75,60 @@
                 
                 omegaThree.init(renderer)
                 omegaThree.scene = scene;
-                camera = omegaThree.camera;
+                
+                if(runningInWebView) {
+                    camera = omegaThree.camera;
+                } 
+                else {
+                    camera = new THREE.PerspectiveCamera( 27, window.innerWidth / window.innerHeight, 0.1, 20);
+                    camera.position.y = 2;
+                    omegaThree.camera = camera;
+                }
+                
 
 				//container.appendChild( renderer.domElement );
 
 				renderer.domElement.addEventListener( 'mousemove', onDocumentMouseMove, false );
 				renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
 				renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
-
-                OMEGA.frame = function(context) {
-                    omegaThree.frame(context)
-                }
 			}
 
+            function makeBoxes(n, pos, rot, scale, color) {
+				var geometry = new THREE.BoxGeometry( 0.1, 0.1, 0.1 );
+
+				for ( var i = 0; i < n; i ++ ) {
+
+					var object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: new THREE.Color(color[i]) } ) );
+
+					object.material.ambient = object.material.color;
+
+					object.position.x = pos[i * 3];
+					object.position.y = pos[i * 3 + 1];
+					object.position.z = pos[i * 3 + 2];
+
+					object.rotation.x = rot[i * 3];
+					object.rotation.y = rot[i * 3 + 1];
+					object.rotation.z = rot[i * 3 + 2];
+
+					object.scale.x = scale[i * 3];
+					object.scale.y = scale[i * 3 + 1];
+					object.scale.z = scale[i * 3 + 2];
+
+					object.castShadow = true;
+					object.receiveShadow = true;
+                    
+                    object.index = i;
+
+					scene.add( object );
+
+					objects.push( object );
+				}
+            }
+            
+            function setBoxPosition(i, position) {
+                objects[i].position.fromArray(position);
+            }
+            
 			function onDocumentMouseMove( event ) {
 				event.preventDefault();
 
@@ -138,6 +143,9 @@
 
 					var intersects = raycaster.intersectObject( plane );
 					SELECTED.position.copy( intersects[ 0 ].point.sub( offset ) );
+                    
+                    porthole.call("onBoxMoved(%client_id%, {0}, {1})", SELECTED.index, SELECTED.position.toArray());
+                    
 					return;
 
 				}
@@ -171,10 +179,8 @@
 				}
 
 			}
-
+            
 			function onDocumentMouseDown( event ) {
-                //if(event.button != 2) return;
-
 				event.preventDefault();
 
 				var vector = new THREE.Vector3( mouse.x, mouse.y, 0.5 ).unproject( camera );
@@ -184,7 +190,9 @@
 				var intersects = raycaster.intersectObjects( objects );
 
 				if ( intersects.length > 0 ) {
-                    OMEGA.queueCommand('getDefaultCamera().setControllerEnabled(False)')
+                    if(runningInWebView) {
+                        OMEGA.queueCommand('getDefaultCamera().setControllerEnabled(False)')
+                    }
                 
 					SELECTED = intersects[ 0 ].object;
 
@@ -198,8 +206,9 @@
 			}
 
 			function onDocumentMouseUp( event ) {
-                //if(event.button != 2) return;
-                OMEGA.queueCommand('getDefaultCamera().setControllerEnabled(True)')
+                if(runningInWebView) {
+                    OMEGA.queueCommand('getDefaultCamera().setControllerEnabled(True)')
+                }
 
 				event.preventDefault();
 

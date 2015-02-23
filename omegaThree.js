@@ -28,31 +28,49 @@ omegaThree.init = function(renderer) {
 omegaThree.frame = function(omega) {
     my = omegaThree
     
-    my.camera.projectionMatrix.fromArray(omega.projection);
-    my.camera.matrixWorld.fromArray(omega.modelview);
-    my.camera.position.x = omega.cameraPosition[0]
-    my.camera.position.y = omega.cameraPosition[1]
-    my.camera.position.z = omega.cameraPosition[2]
+    if(omega.projection != null) {
+        my.camera.projectionMatrix.fromArray(omega.projection);
+        my.camera.matrixWorld.fromArray(omega.modelview);
+        my.camera.position.x = omega.cameraPosition[0]
+        my.camera.position.y = omega.cameraPosition[1]
+        my.camera.position.z = omega.cameraPosition[2]
+    }
     
     if(omegaThree.scene) {
-        if(window.innerWidth != my.w || window.innerHeight != my.h ||
-            my.x != omega.activeRect[0] || my.y != omega.activeRect[1]) {
-            console.log("resize " + window.innerWidth + " " + window.innerHeight + " " + omega.activeRect[0] + " " + omega.activeRect[1])
-            my.w = window.innerWidth;
-            my.h = window.innerHeight;
-            my.x = omega.activeRect[0];
-            my.y = omega.activeRect[1];
-            my.renderer.setSize( my.w,my.h );
-            my.irenderer.setSize( my.w,my.h , omega.activeRect);
+        if(omega.projection != null) {
+            if(window.innerWidth != my.w || window.innerHeight != my.h ||
+                my.x != omega.activeRect[0] || my.y != omega.activeRect[1]) {
+                console.log("resize " + window.innerWidth + " " + window.innerHeight + " " + omega.activeRect[0] + " " + omega.activeRect[1])
+                my.w = window.innerWidth;
+                my.h = window.innerHeight;
+                my.x = omega.activeRect[0];
+                my.y = omega.activeRect[1];
+                my.renderer.setSize( my.w,my.h );
+                my.irenderer.setSize( my.w,my.h , omega.activeRect);
+            }
+        } else {
+            if(window.innerWidth != my.w || window.innerHeight != my.h) {
+                my.w = window.innerWidth;
+                my.h = window.innerHeight;
+                my.x = 0;
+                my.y = 0;
+                my.renderer.setSize( my.w,my.h );
+                my.irenderer.setSize( my.w,my.h , omega.activeRect);
+            }
         }
-        if(omega.stereoMode == omegaThree.DisplayMono)
-        {
+        if(omega.projection != null) {
+            if(omega.stereoMode == omegaThree.DisplayMono)
+            {
+                omegaThree.renderer.render(omegaThree.scene, omegaThree.camera);
+            }
+            else if(omega.stereoMode == omegaThree.DisplayLineInterleaved)
+            {
+                omegaThree.irenderer.context = omega;
+                omegaThree.irenderer.render(omegaThree.scene, omegaThree.camera);
+            }
+        }
+        else {
             omegaThree.renderer.render(omegaThree.scene, omegaThree.camera);
-        }
-        else if(omega.stereoMode == omegaThree.DisplayLineInterleaved)
-        {
-            omegaThree.irenderer.context = omega;
-            omegaThree.irenderer.render(omegaThree.scene, omegaThree.camera);
         }
     }
 }
