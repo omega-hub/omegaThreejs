@@ -14,8 +14,10 @@
         start();
         
         function start() {
+            renderer = new THREE.WebGLRenderer( { 
+                canvas: document.getElementById('canvas')} );
             scene = new THREE.Scene();
-            omegaThree.init("canvas")
+            omegaThree.init(renderer)
             omegaThree.scene = scene
 
             // LIGHT

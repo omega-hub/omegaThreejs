@@ -12,16 +12,15 @@ omegaThree.DisplayMono = 0;
 omegaThree.DisplayLineInterleaved = 1;
 
 ////////////////////////////////////////////////////////////////////////////////
-omegaThree.init = function(canvas) {
+omegaThree.init = function(renderer) {
     my = omegaThree
-    gcanvas = document.getElementById(canvas);
     
-    my.camera = new THREE.Camera();
+    my.camera = new THREE.PerspectiveCamera();
     // Disable the camera updateMatrixWorld method, we take care of computing
     // camera transforms in the omegalib runtime.
     my.camera.updateMatrixWorld = function() {}
     
-    my.renderer = new THREE.WebGLRenderer({canvas: gcanvas});
+    my.renderer = renderer;
     my.irenderer = new omegaThree.InterleavedRenderer(my.renderer);
 }
 
@@ -31,6 +30,9 @@ omegaThree.frame = function(omega) {
     
     my.camera.projectionMatrix.fromArray(omega.projection);
     my.camera.matrixWorld.fromArray(omega.modelview);
+    my.camera.position.x = omega.cameraPosition[0]
+    my.camera.position.y = omega.cameraPosition[1]
+    my.camera.position.z = omega.cameraPosition[2]
     
     if(omegaThree.scene) {
         if(window.innerWidth != my.w || window.innerHeight != my.h ||
